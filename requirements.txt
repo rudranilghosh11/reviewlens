@@ -1,0 +1,8 @@
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+vaderSentiment>=3.3
+streamlit>=1.50
+plotly>=5.20
+# optional, only for the LLM extractor (src/llm_extractor.py)
+anthropic>=0.40
