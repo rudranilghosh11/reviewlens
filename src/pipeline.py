@@ -76,6 +76,7 @@ def find_issues(a, reviews, now=None, window=28, top=None):
     base = reviews[~reviews.flagged]
     now = now or a.date.max()
     mean_rating, n_rev, out = base.rating.mean(), max(len(base), 1), []
+    dated = a.date.nunique() > 1  # without real dates, trend and growth are meaningless
     for asp, g in a[a.sentiment == "neg"].groupby("aspect"):
         if len(g) < 10:
             continue
@@ -99,14 +100,14 @@ def find_issues(a, reviews, now=None, window=28, top=None):
             recent = int((gc.date > now - pd.Timedelta(days=window)).sum())
             prior = int(((gc.date <= now - pd.Timedelta(days=window)) &
                          (gc.date > now - pd.Timedelta(days=2 * window))).sum())
-            growth = float(np.clip((recent - prior) / max(prior, 5), -1, 2))
+            growth = float(np.clip((recent - prior) / max(prior, 5), -1, 2)) if dated else 0.0
             share = len(ids) / n_rev
             raw = share * (0.5 + sev) * (1 + max(growth, 0)) * (1 + drag / 2)
             order = np.argsort(dist[m, c])
             cand = gc.sentence.iloc[order].str.strip().str.rstrip(".!? ")
             quotes = cand.loc[~cand.str.lower().duplicated()].head(3).tolist()
             out.append(dict(aspect=asp, issue=quotes[0], mentions=len(gc), reviews=len(ids),
-                            pct_reviews=round(100 * share, 1), severity=round(sev, 2),
+                            pct_reviews=round(100 * share, 1), severity=round(sev, 2), dated=dated,
                             rating_drag=round(drag, 2), recent=recent, prior=prior,
                             trend=round(growth, 2), raw=raw, quotes=quotes,
                             owner=OWNERS.get(asp, "Product"), action=ACTIONS.get(asp, "Investigate.")))
@@ -120,6 +121,8 @@ def find_issues(a, reviews, now=None, window=28, top=None):
 
 def emerging(a, now=None, recent_days=14, base_days=56, min_recent=8, ratio=1.6):
     """Flag brand x aspect pairs whose negative mentions spiked vs. their recent baseline."""
+    if a.date.nunique() <= 1:  # no real dates: spikes cannot be detected
+        return pd.DataFrame(columns=["brand", "aspect", "recent", "expected", "spike"])
     now = now or a.date.max()
     neg, res = a[a.sentiment == "neg"], []
     for (b, asp), g in neg.groupby(["brand", "aspect"]):

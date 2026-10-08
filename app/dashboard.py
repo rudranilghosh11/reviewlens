@@ -5,6 +5,7 @@ import streamlit.components.v1 as components
 from src.pipeline import (clean_reviews, extract_aspects, aspect_summary, find_issues, emerging, weekly_net)
 from src.search import build_index, search
 from src.brief import make_brief
+from src.ingest import read_csv_robust, guess_columns, standardize
 
 st.set_page_config(page_title="ReviewLens", page_icon=None, layout="wide", initial_sidebar_state="expanded")
 
@@ -267,9 +268,9 @@ def fix_card(i, r):
         f'<div class="rank">{i}</div>'
         f'<div><div class="fix-title">{esc(r.issue)}</div>'
         f'<div class="fix-meta"><span class="pill">{esc(str(r.aspect).capitalize())}</span>'
-        f'<span class="badge {cls}">{label}</span>{trend_tag(r.trend)}'
+        f'<span class="badge {cls}">{label}</span>{trend_tag(r.trend) if r.dated else ""}'
         f'<span>{r.pct_reviews}% of reviews</span>'
-        f'<span>{r.recent} mentions in last 28 days (prior {r.prior})</span>'
+        f'<span>{(f"{r.recent} mentions in last 28 days (prior {r.prior})" if r.dated else f"{r.mentions} negative mentions")}</span>'
         f'<span>Owner: {esc(r.owner)}</span></div></div>'
         f'<div class="score"><div class="score-n">{r.priority}<small>/100</small></div>'
         f'<div class="bar"><i style="width:{r.priority}%;background:{color}"></i></div>'
@@ -300,7 +301,7 @@ def hero(n_reviews, issues, alerts, scope):
             f'<div class="tilt"><div class="tilt-h"><span>Highest priority right now</span><span class="badge {cls}">{label}</span></div>'
             f'<div class="tilt-t">{esc(r.issue)}</div>'
             f'<div class="tilt-row"><div class="tilt-n">{r.priority}<small>/100</small></div>'
-            f'<div class="fix-meta" style="margin:0"><span class="pill">{esc(str(r.aspect).capitalize())}</span>{trend_tag(r.trend)}</div></div>'
+            f'<div class="fix-meta" style="margin:0"><span class="pill">{esc(str(r.aspect).capitalize())}</span>{trend_tag(r.trend) if r.dated else ""}</div></div>'
             f'<div class="bar" style="height:7px;margin:14px 0 0"><i style="width:{r.priority}%;background:{color}"></i></div>'
             f'<div class="tilt-f"><span><b>{r.pct_reviews}%</b> of reviews affected</span><span>Owner: <b>{esc(r.owner)}</b></span>'
             f'<span><b>{n_al}</b> emerging {"alert" if n_al == 1 else "alerts"}</span></div></div>')
@@ -334,14 +335,62 @@ def analyse(raw: pd.DataFrame):
     rev = clean_reviews(raw); return rev, extract_aspects(rev)
 
 
+@st.cache_resource(show_spinner="Reading file...")
+def read_upload(name, size, _data):
+    """Cached on file name + size only (the bytes are not hashed). Handles any encoding."""
+    return read_csv_robust(_data)
+
+
+@st.cache_data(show_spinner="Preparing data...")
+def prepare(name, size, mapping_items, cap, first_word, _df):
+    return standardize(_df, dict(mapping_items), max_rows=cap, brand_first_word=first_word)
+
+
+def load_uploaded(up):
+    """Read any CSV, let the user confirm the column mapping, return the 5 standard columns."""
+    try:
+        df, enc = read_upload(up.name, up.size, up.getvalue())
+    except Exception as e:
+        st.error(f"Could not read this file: {e}"); st.stop()
+    guess, cols = guess_columns(df), list(df.columns)
+    need = guess["review_text"] is None or guess["rating"] is None
+    with st.expander("Map columns", expanded=need):
+        def pick(label, key, required):
+            first = "(choose)" if required else "(none)"
+            opts = [first] + cols
+            idx = opts.index(guess[key]) if guess.get(key) in opts else 0
+            v = st.selectbox(label, opts, index=idx, key=f"map_{key}_{up.name}")
+            return None if v == first else v
+        mapping = {"review_text": pick("Review text", "review_text", True), "rating": pick("Rating", "rating", True),
+                   "date": pick("Date", "date", False), "brand": pick("Brand or product", "brand", False),
+                   "review_id": pick("Review ID", "review_id", False)}
+        first_word = False
+        if mapping["brand"] and df[mapping["brand"]].nunique() > 30:
+            first_word = st.checkbox("Use the first word as the brand", value=True,
+                                     help="Product names are long and mostly unique, so the first word is used as the brand.")
+        cap = st.number_input("Max reviews to analyse", min_value=min(1000, len(df)), max_value=len(df),
+                              value=min(20000, len(df)), step=1000,
+                              help="Larger samples are slower. A random sample is used if the file is bigger.")
+    if mapping["review_text"] is None or mapping["rating"] is None:
+        st.warning("Choose the review text and rating columns under Map columns to continue."); st.stop()
+    try:
+        out, notes = prepare(up.name, up.size, tuple(sorted(mapping.items())), int(cap), first_word, df)
+    except Exception as e:
+        st.error(f"Could not prepare the data: {e}"); st.stop()
+    st.caption(f"{len(df):,} rows read ({enc} encoding). Using {len(out):,}.")
+    for n in notes:
+        st.caption(n)
+    return out
+
+
 # ------------------------------------------------------------------------------- sidebar
 with st.sidebar:
     st.markdown('<div style="font-size:18px;font-weight:700">ReviewLens</div>'
                 '<div style="font-size:13px;color:#94A0B5">Customer voice insights</div>', unsafe_allow_html=True)
     st.markdown('<div class="side-h">Data</div>', unsafe_allow_html=True)
-    up = st.file_uploader("Upload reviews CSV", type="csv",
-                          help="Columns: review_id, brand, date, rating, review_text")
-    raw = pd.read_csv(up) if up else pd.read_csv(pathlib.Path(__file__).resolve().parents[1] / "data/reviews.csv")
+    up = st.file_uploader("Upload reviews CSV", type=["csv", "txt"],
+                          help="Any CSV with a review text and a rating column. Other columns are optional.")
+    raw = load_uploaded(up) if up else pd.read_csv(pathlib.Path(__file__).resolve().parents[1] / "data/reviews.csv")
     reviews, asp = analyse(raw)
     st.markdown('<div class="side-h">Filters</div>', unsafe_allow_html=True)
     brands = sorted(reviews.brand.unique())
@@ -387,8 +436,10 @@ st.markdown('<div id="home" class="anchor"></div>', unsafe_allow_html=True)
 st.markdown(hero(len(good), issues, alerts, brand), unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------- overview
+has_dates = reviews.date.nunique() > 1
 chips = (f'<div class="chips"><span class="chip">{esc(brand)}</span>'
-         f'<span class="chip">{scope_from:%d %b %Y} to {scope_to:%d %b %Y}</span></div>')
+         + (f'<span class="chip">{scope_from:%d %b %Y} to {scope_to:%d %b %Y}</span>' if has_dates
+            else '<span class="chip">No date column</span>') + '</div>')
 section("overview", "Overview", "The state of customer feedback for the current selection", chips)
 avg = good.rating.mean()
 weak, weak_net, weak_neg = summ.index[0], summ.net.iloc[0], int(summ.neg.iloc[0])
@@ -453,7 +504,9 @@ with right, st.container(border=True):
     sel = st.multiselect("Topics", sorted(w.aspect.unique()), default=list(summ.index[:3]),
                          format_func=lambda x: x.capitalize(), label_visibility="collapsed")
     wsel = w[w.aspect.isin(sel)].assign(Topic=lambda d: d.aspect.str.capitalize())
-    if wsel.empty:
+    if w.week.nunique() < 2:
+        st.info("Trends need a date column with more than one date. Add one under Map columns.")
+    elif wsel.empty:
         st.info("Select at least one topic to see its trend.")
     else:
         tf = px.line(wsel, x="week", y="net", color="Topic", markers=True, color_discrete_sequence=SERIES,
