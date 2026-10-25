@@ -1,0 +1,288 @@
+/* REVIEW LENS V2 — LAMBORGHINI DESIGN SYSTEM SPECIFICATION */
+:root {
+  --bg-abyss: #000000;
+  --bg-surface-1: #101010;
+  --bg-surface-2: #181818;
+  --bg-surface-3: #222222;
+  --bg-surface-card: #151515;
+
+  --border-subtle: #242424;
+  --border-strong: #383838;
+  --border-gold: rgba(255, 192, 0, 0.4);
+
+  --lambo-gold: #FFC000;
+  --lambo-gold-hover: #917300;
+  --lambo-gold-text: #FFCE3E;
+  --lambo-gold-glow: rgba(255, 192, 0, 0.15);
+
+  --text-pure-white: #FFFFFF;
+  --text-smoke: #E0E0E0;
+  --text-muted: #8E8E8E;
+  --text-dark: #555555;
+
+  --cyan-pulse: #29ABE2;
+  --cyan-glow: rgba(41, 171, 226, 0.2);
+  --danger-red: #FF334B;
+  --success-green: #00E676;
+  --warning-amber: #FF9100;
+
+  --font-display: 'Chakra Petch', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bg-abyss);
+  color: var(--text-pure-white);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-abyss);
+}
+::-webkit-scrollbar-thumb {
+  background: #333333;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lambo-gold);
+}
+
+/* Sharp Typography */
+h1, h2, h3, h4, h5, h6, .display-text {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+/* Zero Border Radius System */
+button, input, select, textarea, .card, .badge, .panel, .table-container {
+  border-radius: 0px !important;
+}
+
+/* Button Variants */
+.btn-gold {
+  background-color: var(--lambo-gold);
+  color: #000000;
+  border: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 12px 24px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease-in-out;
+  text-decoration: none;
+}
+
+.btn-gold:hover:not(:disabled) {
+  background-color: var(--lambo-gold-hover);
+  color: #FFFFFF;
+}
+
+.btn-gold:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--text-pure-white);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 11px 22px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: rgba(41, 171, 226, 0.15);
+  border-color: var(--cyan-pulse);
+  color: var(--cyan-pulse);
+}
+
+.btn-ghost.active {
+  background-color: var(--bg-surface-3);
+  border-color: var(--lambo-gold);
+  color: var(--lambo-gold);
+}
+
+.btn-ghost:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-subtle {
+  background-color: var(--bg-surface-2);
+  color: var(--text-smoke);
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-subtle:hover:not(:disabled) {
+  background-color: var(--bg-surface-3);
+  border-color: var(--border-strong);
+  color: #FFFFFF;
+}
+
+/* Angular Card Panel */
+.telemetry-card {
+  background-color: var(--bg-surface-card);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  transition: border-color 0.2s ease;
+}
+
+.telemetry-card:hover {
+  border-color: var(--border-strong);
+}
+
+.telemetry-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.telemetry-card.highlight-gold::before {
+  background: var(--lambo-gold);
+}
+
+.telemetry-card.highlight-cyan::before {
+  background: var(--cyan-pulse);
+}
+
+.telemetry-card.highlight-red::before {
+  background: var(--danger-red);
+}
+
+/* Telemetry Badge */
+.telemetry-badge {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-gold {
+  background: rgba(255, 192, 0, 0.15);
+  color: var(--lambo-gold);
+  border: 1px solid rgba(255, 192, 0, 0.4);
+}
+
+.badge-cyan {
+  background: rgba(41, 171, 226, 0.15);
+  color: var(--cyan-pulse);
+  border: 1px solid rgba(41, 171, 226, 0.4);
+}
+
+.badge-red {
+  background: rgba(255, 51, 75, 0.15);
+  color: var(--danger-red);
+  border: 1px solid rgba(255, 51, 75, 0.4);
+}
+
+.badge-green {
+  background: rgba(0, 230, 118, 0.15);
+  color: var(--success-green);
+  border: 1px solid rgba(0, 230, 118, 0.4);
+}
+
+.badge-neutral {
+  background: var(--bg-surface-3);
+  color: var(--text-smoke);
+  border: 1px solid var(--border-strong);
+}
+
+/* High Contrast Data Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.data-table th {
+  background-color: var(--bg-surface-2);
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-smoke);
+  vertical-align: middle;
+}
+
+.data-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+  color: #FFFFFF;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50% !important;
+  display: inline-block;
+  animation: pulseGlow 2s infinite ease-in-out;
+}

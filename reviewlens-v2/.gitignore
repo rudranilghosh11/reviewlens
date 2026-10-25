@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# IDE
+.vscode/
+.idea/
+
+# Data & outputs (keep templates, ignore large generated files)
+outputs/*.csv
+outputs/*.md
+data/reviews.csv
+data/labels_gold_synthetic.csv
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Uploads
+uploads/

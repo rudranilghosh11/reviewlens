@@ -1,0 +1,24 @@
+aspect,issue,mentions,reviews,pct_reviews,severity,rating_drag,recent,prior,trend,owner,action,priority
+battery,Battery drains within two hours,85,85,2.7,0.38,1.15,35,10,2.0,Hardware / Firmware,"Reproduce on current firmware, check recent releases, prepare a patch or advisory.",100
+battery,Battery backup is terrible,85,85,2.7,0.49,1.01,35,19,0.84,Hardware / Firmware,"Reproduce on current firmware, check recent releases, prepare a patch or advisory.",66
+delivery,Package arrived damaged with the box torn,120,120,3.9,0.61,1.1,14,19,-0.26,Logistics,Audit courier SLAs and packaging; add proactive delay notifications.,58
+battery,Charging case does not hold charge,99,99,3.2,0.26,1.02,26,18,0.44,Hardware / Firmware,"Reproduce on current firmware, check recent releases, prepare a patch or advisory.",46
+comfort,Fit is loose and they fall out while running,85,85,2.7,0.44,1.08,19,15,0.27,Design,Add more ear-tip sizes in the box and revisit shell ergonomics.,44
+service,Warranty claim was denied twice,70,70,2.3,0.47,1.08,20,14,0.43,Customer Support,Set response/resolution SLAs and simplify refund and warranty workflows.,42
+delivery,Wrong item was delivered,91,91,2.9,0.47,1.27,16,19,-0.16,Logistics,Audit courier SLAs and packaging; add proactive delay notifications.,41
+sound,Mic sounds muffled for callers,94,94,3.0,0.47,1.11,12,12,0.0,Product & Audio,Run a tuning review and publish an EQ/mic-setting guide while fixing the root cause.,40
+price,"Got it cheaper elsewhere, felt overcharged",80,80,2.6,0.5,1.18,7,13,-0.46,Pricing & Marketing,Review price positioning vs. competitors and test value-led messaging or bundles.,36
+quality,Case lid snapped off on day twenty,81,81,2.6,0.45,1.19,8,11,-0.27,Product & QA,Open a QA investigation on the failing component and review supplier batches.,34
+connectivity,Pairing is a nightmare each time,75,75,2.4,0.5,1.14,10,12,-0.17,Firmware / App,Triage Bluetooth/firmware bug reports and ship a connectivity patch.,33
+connectivity,Video lag makes watching unwatchable,51,51,1.6,0.6,1.23,7,6,0.17,Firmware / App,Triage Bluetooth/firmware bug reports and ship a connectivity patch.,30
+sound,Sound is flat and lifeless,62,62,2.0,0.43,1.07,13,11,0.18,Product & Audio,Run a tuning review and publish an EQ/mic-setting guide while fixing the root cause.,30
+comfort,Ear tips hurt after an hour,50,50,1.6,0.54,1.06,9,7,0.29,Design,Add more ear-tip sizes in the box and revisit shell ergonomics.,29
+delivery,Packaging was crushed and the seal was open,51,51,1.6,0.48,0.96,5,4,0.2,Logistics,Audit courier SLAs and packaging; add proactive delay notifications.,25
+quality,Build feels flimsy and fragile,50,50,1.6,0.65,1.04,6,8,-0.25,Product & QA,Open a QA investigation on the failing component and review supplier batches.,25
+comfort,Ears ache after long use,50,50,1.6,0.43,1.14,7,6,0.17,Design,Add more ear-tip sizes in the box and revisit shell ergonomics.,24
+service,Customer support took ages to reply,33,33,1.1,0.54,1.17,5,3,0.4,Customer Support,Set response/resolution SLAs and simplify refund and warranty workflows.,21
+connectivity,Bluetooth keeps disconnecting,29,29,0.9,0.47,0.95,6,4,0.4,Firmware / App,Triage Bluetooth/firmware bug reports and ship a connectivity patch.,16
+sound,"Mic is poor, people cannot hear me",34,34,1.1,0.49,1.4,6,10,-0.4,Product & Audio,Run a tuning review and publish an EQ/mic-setting guide while fixing the root cause.,16
+quality,One side went dead within a month,35,35,1.1,0.55,1.16,6,6,0.0,Product & QA,Open a QA investigation on the failing component and review supplier batches.,16
+price,Price jumped after the sale ended,38,38,1.2,0.27,1.18,5,6,-0.17,Pricing & Marketing,Review price positioning vs. competitors and test value-led messaging or bundles.,13
+service,Refund still not processed after three weeks,32,32,1.0,0.21,0.83,1,5,-0.8,Customer Support,Set response/resolution SLAs and simplify refund and warranty workflows.,9
