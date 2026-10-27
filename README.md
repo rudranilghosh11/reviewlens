@@ -1,4 +1,4 @@
-# ReviewLens: Customer Voice Insights for Brands
+﻿# ReviewLens: Customer Voice Insights for Brands
 
 Turns thousands of product reviews into a **prioritised, evidence-backed "fix first" list** for a brand or product manager.
 
