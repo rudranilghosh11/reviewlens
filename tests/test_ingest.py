@@ -19,7 +19,14 @@ def test_guesses_flipkart_style_columns():
 def test_standardize_without_dates():
     df, _ = read_csv_robust(_cp1252_csv())
     out, notes = standardize(df, guess_columns(df))
-    assert list(out.columns) == ["review_id", "brand", "date", "rating", "review_text"]
+    assert list(out.columns) == [
+    "review_id",
+    "brand",
+    "product",
+    "date",
+    "rating",
+    "review_text",
+]
     assert any("No date column" in n for n in notes) and out.rating.between(1, 5).all()
 
 

@@ -49,26 +49,43 @@ export async function searchReviews(
   return await response.json();
 }
 
+
 export async function getReviews(
   analysisId: string,
   page = 1,
   perPage = 25,
   brand?: string,
-  sentiment?: string
+  sentiment?: string,
+  product?: string
 ): Promise<{ items: ReviewItem[]; total: number; page: number; pages: number }> {
   const params = new URLSearchParams({
     page: page.toString(),
     per_page: perPage.toString(),
   });
-  if (brand && brand !== 'ALL') params.append('brand', brand);
-  if (sentiment && sentiment !== 'ALL') params.append('sentiment', sentiment);
 
-  const response = await fetch(`${BASE_URL}/reviews/${analysisId}?${params.toString()}`);
+  if (brand && brand !== 'ALL' && brand !== 'All') {
+    params.append('brand', brand);
+  }
+
+  if (sentiment && sentiment !== 'ALL' && sentiment !== 'All') {
+    params.append('sentiment', sentiment);
+  }
+
+  if (product && product !== 'ALL' && product !== 'All') {
+    params.append('product', product);
+  }
+
+  const response = await fetch(
+    `${BASE_URL}/reviews/${analysisId}?${params.toString()}`
+  );
+
   if (!response.ok) {
     throw new Error(`Failed to fetch reviews: ${response.statusText}`);
   }
+
   return await response.json();
 }
+
 
 export async function getBrief(analysisId: string): Promise<string> {
   const response = await fetch(`${BASE_URL}/brief/${analysisId}`);

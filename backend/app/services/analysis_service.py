@@ -98,12 +98,21 @@ def run_analysis(raw_bytes: bytes, filename: str, column_overrides: dict | None 
     date_max = str(good.date.max().date()) if has_dates else ""
 
     # Brands
-    brands = sorted(good.brand.unique().tolist())
+       # Brands
+    brands = sorted(good.brand.dropna().unique().tolist())
+
+    # Products
+    products = (
+        sorted(good["product"].dropna().astype(str).unique().tolist())
+        if "product" in good.columns
+        else []
+    )
 
     # Persist in session
     aid = uuid.uuid4().hex[:12]
     _sessions[aid] = {
         "reviews": reviews,
+         "products": products,
         "aspects": aspects_df,
         "issues": issues_df,
         "alerts": alerts_df,
@@ -213,6 +222,7 @@ def run_analysis(raw_bytes: bytes, filename: str, column_overrides: dict | None 
             "has_dates": has_dates,
             "has_brands": len(brands) > 1 or (len(brands) == 1 and brands[0] != "All products"),
             "brands": brands,
+            "products": products,
             "notes": notes,
             "date_range": [date_min, date_max],
         },
@@ -249,17 +259,32 @@ def search_session(analysis_id: str, query: str, k: int = 10) -> list[dict]:
     return out
 
 
-def get_reviews(analysis_id: str, page: int = 1, per_page: int = 50,
-                brand: str | None = None, sentiment: str | None = None) -> dict:
-    """Paginated review explorer."""
+
+def get_reviews(
+    analysis_id: str,
+    page: int = 1,
+    per_page: int = 50,
+    brand: str | None = None,
+    sentiment: str | None = None,
+    product: str | None = None,
+) -> dict:
+    """Paginated review explorer with optional product filtering."""
     sess = _sessions.get(analysis_id)
     if sess is None:
         raise KeyError(f"Analysis session '{analysis_id}' not found.")
+
     reviews = sess["reviews"]
     df = reviews.copy()
 
     if brand and brand != "All":
         df = df[df.brand == brand]
+
+    if product and product != "All":
+        if "product" in df.columns:
+            df = df[df["product"].astype(str) == product]
+        else:
+            df = df.iloc[0:0]
+
     if sentiment == "positive":
         df = df[df.overall >= 0.15]
     elif sentiment == "negative":
@@ -277,13 +302,21 @@ def get_reviews(analysis_id: str, page: int = 1, per_page: int = 50,
         items.append({
             "review_id": str(row.review_id),
             "brand": str(row.brand),
+            "product": str(row.product) if "product" in df.columns else "",
             "date": str(row.date.date()) if hasattr(row.date, "date") else str(row.date),
             "rating": int(row.rating),
             "review_text": str(row.review_text),
             "overall": round(float(row.overall), 3),
             "flagged": bool(row.flagged),
         })
-    return {"items": items, "total": total, "page": page, "per_page": per_page}
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+    }
+
 
 
 def generate_brief(analysis_id: str, brand: str = "All brands") -> str:

@@ -92,6 +92,7 @@ export interface AnalysisOverview {
   has_dates: boolean;
   has_brands: boolean;
   brands: string[];
+  products: string[];
   notes: string[];
   date_range: string[];
 }

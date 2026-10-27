@@ -177,28 +177,60 @@ def standardize(df, mapping, max_rows=20000, top_brands=12, brand_first_word=Fal
         d["_date"] = pd.Timestamp.today().normalize()
         notes.append("No date column: trends and emerging-issue alerts need dates, so they will not be meaningful.")
 
+    
     if mapping.get("brand"):
-        b = d[mapping["brand"]].astype(str).str.strip().replace({"": "Unknown", "nan": "Unknown"})
+        product_names = (
+            d[mapping["brand"]]
+            .fillna("Unknown")
+            .astype(str)
+            .str.strip()
+            .replace({"": "Unknown", "nan": "Unknown", "None": "Unknown"})
+        )
+
+        # Preserve original product names for product-specific filtering.
+        d["_product"] = product_names
+
+        # Keep the existing brand grouping for backward compatibility.
+        b = product_names
         if brand_first_word:
             b = b.str.split().str[0]
+
         top = b.value_counts().head(top_brands).index
         d["_brand"] = b.where(b.isin(top), "Other")
+
         if b.nunique() > top_brands:
-            notes.append(f"{b.nunique():,} distinct brand/product values: kept the top {top_brands}, grouped the rest as 'Other'.")
+            notes.append(
+                f"{b.nunique():,} distinct brand/product values: "
+                f"kept the top {top_brands}, grouped the rest as 'Other'."
+            )
     else:
+        d["_product"] = "Unknown"
         d["_brand"] = "All products"
 
     ids = d[mapping["review_id"]].astype(str) if mapping.get("review_id") else None
     if ids is None or ids.duplicated().any():
         ids = pd.Series([f"R{i:06d}" for i in range(len(d))], index=d.index)
-    out = pd.DataFrame({"review_id": ids.values, "brand": d["_brand"].values, "date": d["_date"].values,
-                        "rating": d["_rating"].values, "review_text": d["_text"].values})
+
+    out = pd.DataFrame({
+        "review_id": ids.values,
+        "brand": d["_brand"].values,
+        "product": d["_product"].values,
+        "date": d["_date"].values,
+        "rating": d["_rating"].values,
+        "review_text": d["_text"].values,
+    })
+
     if out.empty:
         raise ValueError("No usable rows left after cleaning. Check the column mapping.")
+
     nonlatin = out.review_text.apply(lambda t: bool(_NONLATIN.search(t))).mean()
     if nonlatin > 0.10:
-        notes.append(f"{100 * nonlatin:.0f}% of reviews contain non-Latin scripts (for example Hindi or Tamil). "
-                     "Sentiment scoring supports English and some Hinglish only, so results for those reviews will be weak.")
+        notes.append(
+            f"{100 * nonlatin:.0f}% of reviews contain non-Latin scripts "
+            "(for example Hindi or Tamil). Sentiment scoring supports English "
+            "and some Hinglish only, so results for those reviews will be weak."
+        )
+
     out = out.reset_index(drop=True)
     out.attrs["rating_estimated"] = estimated
     return out, notes

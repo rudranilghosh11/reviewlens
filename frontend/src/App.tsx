@@ -8,7 +8,7 @@ import { EmergingAndRisks } from './components/EmergingAndRisks';
 import { HeatmapView } from './components/HeatmapView';
 import { SearchExplorer } from './components/SearchExplorer';
 import { BriefView } from './components/BriefView';
-import { checkHealth } from './api/client';
+import { checkHealth, getConfig } from './api/client';
 import type { AnalysisResult } from './types/analysis';
 
 function App() {
@@ -63,6 +63,7 @@ function App() {
             setLoading={setLoading}
             error={error}
             setError={setError}
+	    maxUploadBytes={config?.max_upload_bytes ?? 250 * 1024 * 1024}
           />
         ) : (
           <div>
@@ -96,9 +97,10 @@ function App() {
             {/* Tab 03: Evidence Explorer & TF-IDF Search */}
             {activeTab === 'search' && (
               <SearchExplorer
-                analysisId={analysis.analysis_id}
-                brands={analysis.overview.brands}
-              />
+              analysisId={analysis.analysis_id}
+              brands={analysis.overview.brands}
+              products={analysis.overview.products ?? []}
+            />
             )}
 
             {/* Tab 04: Executive PM Brief */}

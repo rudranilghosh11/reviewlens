@@ -32,16 +32,31 @@ async def analyse(file: UploadFile = File(...)):
     total_size = 0
     chunk_size = 1024 * 1024  # 1 MB chunks
 
+   
     while True:
         chunk = await file.read(chunk_size)
         if not chunk:
             break
+
         total_size += len(chunk)
+
+        # Reject oversized uploads before retaining or analysing more data.
+        if total_size > MAX_UPLOAD_BYTES:
+            actual_mb = total_size / (1024 * 1024)
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"File too large ({actual_mb:.1f} MB / {total_size:,} bytes). "
+                    f"Maximum permitted size is {MAX_UPLOAD_SIZE_MB} MB "
+                    f"({MAX_UPLOAD_BYTES:,} bytes)."
+                ),
+            )
 
         chunks.append(chunk)
 
     if total_size == 0:
         raise HTTPException(status_code=400, detail="The uploaded file is empty (0 bytes).")
+
 
     content = b"".join(chunks)
 
@@ -66,6 +81,7 @@ async def analyse(file: UploadFile = File(...)):
     return result
 
 
+
 @router.get("/reviews/{analysis_id}")
 async def reviews(
     analysis_id: str,
@@ -73,12 +89,21 @@ async def reviews(
     per_page: int = Query(50, ge=1, le=200),
     brand: str | None = None,
     sentiment: str | None = None,
+    product: str | None = None,
 ):
     """Paginated review explorer for a completed analysis."""
     try:
-        return get_reviews(analysis_id, page, per_page, brand, sentiment)
+        return get_reviews(
+            analysis_id,
+            page,
+            per_page,
+            brand,
+            sentiment,
+            product,
+        )
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
 
 
 @router.get("/search/{analysis_id}")

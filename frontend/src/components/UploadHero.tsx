@@ -9,6 +9,7 @@ interface UploadHeroProps {
   setLoading: (l: boolean) => void;
   error: string | null;
   setError: (e: string | null) => void;
+  maxUploadBytes: number;
 }
 
 export const UploadHero: React.FC<UploadHeroProps> = ({
@@ -17,30 +18,46 @@ export const UploadHero: React.FC<UploadHeroProps> = ({
   setLoading,
   error,
   setError,
+  maxUploadBytes,
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [pipelineStage, setPipelineStage] = useState<string>('Initializing pipeline...');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setError(null);
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
+const validateFile = (file: File): boolean => {
+  if (file.size > maxUploadBytes) {
+    const maxMB = Math.floor(maxUploadBytes / (1024 * 1024));
+    setSelectedFile(null);
+    setError(
+      `File too large. Your file is ${(file.size / (1024 * 1024)).toFixed(1)} MB. Maximum permitted size is ${maxMB} MB.`
+    );
+    return false;
+  }
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    setError(null);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setSelectedFile(e.dataTransfer.files[0]);
-    }
-  };
+  setError(null);
+  setSelectedFile(file);
+  return true;
+};
+
+
+
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) validateFile(file);
+  e.target.value = '';
+};
+
+const handleDrop = (e: React.DragEvent) => {
+  e.preventDefault();
+  setDragOver(false);
+
+  const file = e.dataTransfer.files?.[0];
+  if (file) validateFile(file);
+};
+
   const handleUpload = async (file: File) => {
-    // Size validation removed: unlimited file size allowed
-    // Proceed directly to analysis
+    if (!validateFile(file)) return;
 
 
     setLoading(true);
@@ -85,7 +102,7 @@ export const UploadHero: React.FC<UploadHeroProps> = ({
       const blob = await response.blob();
       const sampleFile = new File([blob], 'sample_reviews.csv', { type: 'text/csv' });
       setSelectedFile(sampleFile);
-      await handleRunAnalysis(sampleFile);
+      await handleUpload(sampleFile);
     } catch (err: any) {
       setError(err.message || 'Failed to load sample dataset.');
       setLoading(false);
@@ -208,7 +225,7 @@ export const UploadHero: React.FC<UploadHeroProps> = ({
 
             {selectedFile && (
               <button
-                onClick={() => handleRunAnalysis()}
+                onClick={() => selectedFile && handleUpload(selectedFile)}
                 className="btn-gold"
                 disabled={loading}
               >

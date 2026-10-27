@@ -6,11 +6,17 @@ import type { ReviewItem } from '../types/analysis';
 interface SearchExplorerProps {
   analysisId: string;
   brands: string[];
+  products: string[];
 }
 
-export const SearchExplorer: React.FC<SearchExplorerProps> = ({ analysisId, brands }) => {
+export const SearchExplorer: React.FC<SearchExplorerProps> = ({
+  analysisId,
+  brands,
+  products,
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('ALL');
+  const [selectedProduct, setSelectedProduct] = useState('ALL');
   const [selectedSentiment, setSelectedSentiment] = useState('ALL');
   const [page, setPage] = useState(1);
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
@@ -31,7 +37,14 @@ export const SearchExplorer: React.FC<SearchExplorerProps> = ({ analysisId, bran
         setTotalPages(1);
       } else {
         setIsSearchMode(false);
-        const data = await getReviews(analysisId, page, 20, selectedBrand, selectedSentiment);
+        const data = await getReviews(
+          analysisId,
+          page,
+          20,
+          selectedBrand,
+          selectedSentiment,
+          selectedProduct
+        );
         setReviews(data.items);
         setTotalCount(data.total);
         setTotalPages(data.pages);
@@ -45,7 +58,7 @@ export const SearchExplorer: React.FC<SearchExplorerProps> = ({ analysisId, bran
 
   useEffect(() => {
     fetchReviews();
-  }, [analysisId, page, selectedBrand, selectedSentiment]);
+  },[analysisId, page, selectedBrand, selectedProduct, selectedSentiment])
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,22 +148,50 @@ export const SearchExplorer: React.FC<SearchExplorerProps> = ({ analysisId, bran
           </select>
 
           <select
-            value={selectedSentiment}
-            onChange={(e) => { setSelectedSentiment(e.target.value); setPage(1); }}
-            style={{
-              backgroundColor: 'var(--bg-surface-2)',
-              border: '1px solid var(--border-strong)',
-              color: '#FFFFFF',
-              padding: '10px 14px',
-              fontSize: '0.82rem',
-              outline: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            <option value="ALL">All Sentiments</option>
-            <option value="neg">Negative Reviews</option>
-            <option value="pos">Positive Reviews</option>
-          </select>
+          value={selectedProduct}
+          onChange={(e) => {
+            setSelectedProduct(e.target.value);
+            setPage(1);
+          }}
+          style={{
+            backgroundColor: 'var(--bg-surface-2)',
+            border: '1px solid var(--border-strong)',
+            color: '#FFFFFF',
+            padding: '10px 14px',
+            fontSize: '0.82rem',
+            outline: 'none',
+            cursor: 'pointer',
+            maxWidth: 220,
+          }}
+        >
+          <option value="ALL">All Products</option>
+          {products.map((product) => (
+            <option key={product} value={product}>
+              {product}
+            </option>
+          ))}
+        </select>
+        <select
+        value={selectedSentiment}
+        onChange={(e) => {
+          setSelectedSentiment(e.target.value);
+          setPage(1);
+        }}
+        style={{
+          backgroundColor: 'var(--bg-surface-2)',
+          border: '1px solid var(--border-strong)',
+          color: '#FFFFFF',
+          padding: '10px 14px',
+          fontSize: '0.82rem',
+          outline: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        <option value="ALL">All Sentiments</option>
+        <option value="negative">Negative Reviews</option>
+        <option value="positive">Positive Reviews</option>
+        <option value="neutral">Neutral Reviews</option>
+      </select>
         </div>
       </div>
 
